@@ -11,12 +11,16 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -extldflags=-static" \
     -o /out/control-plane ./cmd/server
 
-# Runtime stage — distroless nonroot
-FROM gcr.io/distroless/static-debian12:nonroot
+# Runtime stage — minimal alpine, non-root
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates && \
+    addgroup -g 10001 appgate && \
+    adduser -u 10001 -G appgate -s /sbin/nologin -D appgate
 
 COPY --from=builder /out/control-plane /app/control-plane
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-USER 65532:65532
+USER 10001:10001
 EXPOSE 8081
 ENTRYPOINT ["/app/control-plane"]

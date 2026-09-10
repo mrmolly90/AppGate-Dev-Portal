@@ -25,18 +25,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -extldflags=-static" \
     -o /out/dev-portal-api ./apps/api
 
-# ---- Runtime stage (distroless, non-root) ---------------------------------
-FROM gcr.io/distroless/static-debian12:nonroot
+# ---- Runtime stage (alpine, non-root) --------------------------------------
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates && \
+    addgroup -g 10001 appgate && \
+    adduser -u 10001 -G appgate -s /sbin/nologin -D appgate
 
 # Copy the static binary
 COPY --from=builder /out/dev-portal-api /app/dev-portal-api
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-# Non-root user already provided by distroless:nonroot (uid 65532)
-USER 65532:65532
-
-# Read-only root filesystem; writable /tmp for any transient work
-COPY --chown=65532:65532 --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
+USER 10001:10001
 EXPOSE 8080
 
 # Fail closed: exec form, no shell
