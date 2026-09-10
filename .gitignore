@@ -2,10 +2,12 @@
 # AppGate Dev-Portal — .gitignore
 # =============================================================================
 
-# --- Environment files (NEVER commit secrets) ---
+# --- Environment files (NEVER commit secrets or examples) ---
 .env
+.env.local
 .env.*
-!.env.example
+!.github/workflows/
+!deploy/docker/docker-compose.yml
 
 # --- Go ---
 bin/
