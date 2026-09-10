@@ -1,0 +1,82 @@
+# =============================================================================
+# AppGate Dev-Portal — Local Development Compose
+#
+# Runs the full stack:
+#   1. control-plane  — Go control plane (JWT signing, gateway registration)
+#   2. dev-portal-api — Go BFF
+#   3. dev-portal-web — React portal (production build via nginx)
+#
+# Production: inject secrets via Vault/K8s Secrets (see deploy/terraform).
+# =============================================================================
+
+version: "3.9"
+
+services:
+  control-plane:
+    build:
+      context: ../../
+      dockerfile: control-plane-ext/Dockerfile
+    environment:
+      CP_BIND: "0.0.0.0:8081"
+      CP_LOG_LEVEL: "info"
+      CP_LOG_FORMAT: "json"
+      CP_JWT_SIGNING_METHOD: "RS256"
+      CP_JWT_ISSUER: "appgate"
+      CP_JWT_AUDIENCE: "appgate-api"
+      CP_JWT_TOKEN_EXPIRY: "24h"
+      CP_STORE_PATH: "/data/store.json"
+      # DEV ONLY — a real deployment mounts a generated RSA key.
+      # The control plane generates an ephemeral key when unset.
+    volumes:
+      - control-plane-data:/data
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - internal
+    restart: unless-stopped
+
+  dev-portal-api:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/api.Dockerfile
+    environment:
+      DP_BIND: ":8080"
+      DP_CP_BASE_URL: "http://control-plane:8081"
+      DP_CP_TLS_INSECURE: "true" # DEV ONLY: control plane runs plain HTTP here
+      DP_LOG_LEVEL: "info"
+      DP_LOG_FORMAT: "json"
+      DP_ALLOWED_ORIGINS: "http://localhost:8080"
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - internal
+    restart: unless-stopped
+
+  dev-portal-web:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/web.Dockerfile
+    environment:
+      DP_API_PROXY: "http://dev-portal-api:8080"
+    ports:
+      - "3000:8080"
+    depends_on:
+      - dev-portal-api
+    networks:
+      - internal
+    restart: unless-stopped
+
+volumes:
+  control-plane-data:
+
+networks:
+  internal:
+    driver: bridge
