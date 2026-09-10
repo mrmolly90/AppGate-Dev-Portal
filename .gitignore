@@ -46,3 +46,7 @@ deploy/terraform/*.tfvars
 *.log
 tmp/
 .reference/
+
+# --- Control plane runtime data ---
+control-plane-ext/data/
+*store.json

@@ -72,7 +72,8 @@ export default function Dashboard() {
           form={form}
           updateField={updateField}
           onSubmit={handleSubmit}
-          isSubmitting={isSubmitting || isBackendDown}
+          isSubmitting={isSubmitting}
+          isBackendDown={isBackendDown}
           error={error}
           fieldErrors={fieldErrors}
           onClearError={clearError}

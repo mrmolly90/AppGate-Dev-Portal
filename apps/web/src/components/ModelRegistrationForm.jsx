@@ -31,8 +31,10 @@ export default function ModelRegistrationForm({
   error,
   fieldErrors,
   onClearError,
+  isBackendDown,
 }) {
   const [showSecret, setShowSecret] = useState(false)
+  const disabled = isSubmitting || isBackendDown
 
   const handleSubmit = useCallback(
     (e) => {
@@ -346,10 +348,17 @@ export default function ModelRegistrationForm({
       {/* ================================================================ */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={disabled}
         className="glass-button-primary w-full py-3 rounded-lg text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? (
+        {isBackendDown ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            Backend Unreachable
+          </span>
+        ) : isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

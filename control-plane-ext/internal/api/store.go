@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -19,6 +20,14 @@ func NewGatewayStore(path string) (*GatewayStore, error) {
 	s := &GatewayStore{
 		path:    path,
 		records: make(map[string]*GatewayRecord),
+	}
+
+	// Ensure the parent directory exists so persistence always succeeds
+	if path != "" {
+		dir := filepath.Dir(path)
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return nil, err
+		}
 	}
 
 	// Try to load existing data
