@@ -1,88 +1,100 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useBffHealth } from '../hooks/useDevPortal.js'
 
 /**
- * Layout — persistent sidebar + main content area with health indicator.
- * Uses glassmorphism panels and cyan-accented navigation.
+ * Layout — Android-frame shell with status bar, scrollable screen, bottom nav.
+ * Desktop shows a framed mobile device; mobile is full-bleed.
  */
 export default function Layout() {
   const { health } = useBffHealth()
+  const [now, setNow] = useState(new Date())
+
+  // Live clock in status bar
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' })
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: DashboardIcon },
+    { to: '/', label: 'Register', icon: RegistrationIcon },
+    { to: '/dashboard', label: 'Dashboard', icon: DashboardIcon },
     { to: '/api-keys', label: 'API Keys', icon: KeyIcon },
     { to: '/policies', label: 'Policies', icon: ShieldIcon },
   ]
 
   const healthColor =
     health.status === 'healthy'
-      ? 'bg-emerald-400'
+      ? '#34d399'
       : health.status === 'loading'
-      ? 'bg-slate-500'
-      : 'bg-red-400'
+      ? '#64748b'
+      : '#f87171'
 
   const healthLabel =
     health.status === 'healthy'
-      ? 'All systems operational'
+      ? 'Live'
       : health.status === 'loading'
-      ? 'Checking connection…'
-      : 'Backend unreachable — fail closed'
+      ? 'Connecting…'
+      : 'Offline'
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 border-r border-slate-800/60 bg-slate-900/40 backdrop-blur-lg flex flex-col">
-        {/* Logo */}
-        <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-800/40">
-          <div className="w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shadow-sm shadow-cyan-500/10">
-            <span className="text-cyan-400 font-bold text-sm tracking-tight">AG</span>
+    <div className="app-shell">
+      <div className="phone-frame">
+        {/* Android-style status bar */}
+        <header className="status-bar">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shadow-sm">
+              <span className="text-cyan-400 font-bold text-[11px] tracking-tight">AG</span>
+            </span>
+            <div>
+              <div className="text-[12px] font-semibold text-slate-100 leading-none">AppGate</div>
+              <div className="text-[9px] text-slate-500 leading-none mt-0.5">Dev Portal</div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-semibold text-slate-100 leading-tight">AppGate</h1>
-            <p className="text-[11px] text-slate-500 leading-tight">Dev Portal</p>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-slate-400 hidden xs:inline">{healthLabel}</span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: healthColor, boxShadow: `0 0 8px ${healthColor}` }} />
+              <span className="text-[13px] font-semibold text-slate-100 tabular-nums">{timeStr}</span>
+            </span>
           </div>
-        </div>
+        </header>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {/* Scrollable screen (Android content) */}
+        <main className="phone-screen">
+          <div className="px-4 py-4 pb-8 route-enter">
+            {/* Date strip */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{dateStr}</span>
+              <span className="text-[11px] text-cyan-400/80 font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: healthColor }} />
+                Control plane {healthLabel.toLowerCase()}
+              </span>
+            </div>
+            <Outlet />
+          </div>
+        </main>
+
+        {/* Android-style bottom navigation */}
+        <nav className="bottom-nav">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'nav-link-active' : ''}`
+                `bottom-nav-item ${isActive ? 'active' : ''}`
               }
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {item.label}
+              <item.icon className="bottom-nav-icon w-5 h-5" />
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
-
-        {/* Health indicator */}
-        <div className="px-4 py-4 border-t border-slate-800/40">
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-2.5 w-2.5">
-              <span
-                className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${healthColor}`}
-              />
-              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${healthColor}`} />
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium text-slate-400 truncate">{healthLabel}</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="route-enter p-6 lg:p-8 max-w-5xl mx-auto">
-          <Outlet />
-        </div>
-      </main>
+      </div>
     </div>
   )
 }
@@ -91,13 +103,22 @@ export default function Layout() {
 // Inline SVG icons (no dependency)
 // ---------------------------------------------------------------------------
 
+function RegistrationIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  )
+}
+
 function DashboardIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <rect x="3" y="3" width="7" height="9" rx="1" />
+      <rect x="14" y="3" width="7" height="5" rx="1" />
+      <rect x="14" y="12" width="7" height="9" rx="1" />
+      <rect x="3" y="16" width="7" height="5" rx="1" />
     </svg>
   )
 }

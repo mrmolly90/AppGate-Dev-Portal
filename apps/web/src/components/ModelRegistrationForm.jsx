@@ -87,13 +87,13 @@ export default function ModelRegistrationForm({
   )
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {/* ================================================================ */}
       {/* ERROR BANNER                                                     */}
       {/* ================================================================ */}
       {error && (
         <div
-          className="animate-slide-up rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400 flex items-start gap-2 transition-all duration-200"
+          className="animate-slide-up rounded-xl bg-[rgba(248,113,113,0.08)] border border-[rgba(248,113,113,0.25)] px-4 py-3 text-sm text-red-400 flex items-start gap-2"
           role="alert"
         >
           <svg
@@ -128,13 +128,10 @@ export default function ModelRegistrationForm({
       {/* ================================================================ */}
       {/* SEGMENT 1: Model Identity                                        */}
       {/* ================================================================ */}
-      <fieldset className="space-y-5">
-        <legend className="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          Model Identity
-        </legend>
+      <fieldset className="space-y-4">
+        <legend className="section-title">Model Identity</legend>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <FormField
             label="Project Name"
             htmlFor="projectName"
@@ -147,9 +144,7 @@ export default function ModelRegistrationForm({
               required
               maxLength={128}
               placeholder="my-llm-app"
-              className={`glass-input w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                fieldErrors?.projectName ? 'ring-2 ring-red-500/50 border-red-500/60' : ''
-              }`}
+              className={`input-field ${fieldErrors?.projectName ? 'input-error' : ''}`}
               value={form.projectName}
               onChange={(e) => updateField('projectName', e.target.value)}
               autoComplete="off"
@@ -164,9 +159,7 @@ export default function ModelRegistrationForm({
             <select
               id="llmModelName"
               required
-              className={`glass-input w-full px-3 py-2.5 rounded-lg text-sm appearance-none transition-all duration-200 ${
-                fieldErrors?.llmModelName ? 'ring-2 ring-red-500/50 border-red-500/60' : ''
-              }`}
+              className={`input-field appearance-none ${fieldErrors?.llmModelName ? 'input-error' : ''}`}
               value={form.llmModelName}
               onChange={(e) => updateField('llmModelName', e.target.value)}
             >
@@ -186,11 +179,8 @@ export default function ModelRegistrationForm({
       {/* ================================================================ */}
       {/* SEGMENT 2: Upstream Provider Configuration                       */}
       {/* ================================================================ */}
-      <fieldset className="space-y-5">
-        <legend className="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          Upstream Provider Configuration
-        </legend>
+      <fieldset className="space-y-4">
+        <legend className="section-title">Upstream Provider Configuration</legend>
 
         <FormField
           label="Provider API Base URL"
@@ -203,9 +193,7 @@ export default function ModelRegistrationForm({
             type="url"
             required
             placeholder="https://api.openai.com/v1"
-            className={`glass-input w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-              fieldErrors?.providerUrl ? 'ring-2 ring-red-500/50 border-red-500/60' : ''
-            }`}
+            className={`input-field ${fieldErrors?.providerUrl ? 'input-error' : ''}`}
             value={form.providerUrl}
             onChange={(e) => updateField('providerUrl', e.target.value)}
             autoComplete="url"
@@ -226,16 +214,14 @@ export default function ModelRegistrationForm({
               minLength={8}
               autoComplete="off"
               placeholder="sk-••••••••••••••••"
-              className={`glass-input w-full px-3 py-2.5 rounded-lg text-sm font-mono pr-10 transition-all duration-200 ${
-                fieldErrors?.providerSdkSecret ? 'ring-2 ring-red-500/50 border-red-500/60' : ''
-              }`}
+              className={`input-field font-mono pr-10 ${fieldErrors?.providerSdkSecret ? 'input-error' : ''}`}
               value={form.providerSdkSecret}
               onChange={(e) => updateField('providerSdkSecret', e.target.value)}
             />
             <button
               type="button"
               onClick={() => setShowSecret((s) => !s)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors duration-200"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors"
               aria-label={showSecret ? 'Hide provider secret' : 'Reveal provider secret'}
               tabIndex={-1}
             >
@@ -259,26 +245,23 @@ export default function ModelRegistrationForm({
       {/* ================================================================ */}
       {/* SEGMENT 3: Policy & Quota Management                             */}
       {/* ================================================================ */}
-      <fieldset className="space-y-5">
-        <legend className="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          Policy &amp; Quota Management
-        </legend>
+      <fieldset className="space-y-4">
+        <legend className="section-title">Policy &amp; Quota Management</legend>
 
         {/* Monthly Budget — unified slider + number input */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="monthlyBudgetLimit" className="text-sm font-medium text-slate-300">
+            <label htmlFor="monthlyBudgetLimit" className="field-label mb-0">
               Monthly Budget Limit (USD)
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-slate-500 text-xs">$</span>
               <input
                 id="monthlyBudgetLimit"
                 type="number"
                 min={1}
                 max={100000}
-                className="glass-input w-24 px-2 py-1 rounded-lg text-sm font-mono text-right tabular-nums transition-all duration-200"
+                className="input-field w-24 px-2 py-1.5 text-sm font-mono text-right tabular-nums"
                 value={form.monthlyBudgetLimit}
                 onChange={(e) => {
                   const v = Number(e.target.value)
@@ -289,7 +272,7 @@ export default function ModelRegistrationForm({
           </div>
           <BudgetSlider value={form.monthlyBudgetLimit} onChange={(v) => updateField('monthlyBudgetLimit', v)} />
           {fieldErrors?.monthlyBudgetLimit && (
-            <p className="mt-1 text-xs text-red-400 transition-all duration-200">{fieldErrors.monthlyBudgetLimit}</p>
+            <p className="field-error">{fieldErrors.monthlyBudgetLimit}</p>
           )}
         </div>
 
@@ -306,9 +289,7 @@ export default function ModelRegistrationForm({
             required
             min={1}
             max={1000000}
-            className={`glass-input w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-              fieldErrors?.rateLimitRpm ? 'ring-2 ring-red-500/50 border-red-500/60' : ''
-            }`}
+            className={`input-field ${fieldErrors?.rateLimitRpm ? 'input-error' : ''}`}
             value={form.rateLimitRpm}
             onChange={(e) => {
               const v = Number(e.target.value)
@@ -318,13 +299,13 @@ export default function ModelRegistrationForm({
         </FormField>
 
         {/* Optional fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <FormField label="Quota Webhook URL" htmlFor="webhookUrl" optional>
             <input
               id="webhookUrl"
               type="url"
               placeholder="https://ops.example.com/quota-events"
-              className="glass-input w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
+              className="input-field"
               value={form.webhookUrl}
               onChange={(e) => updateField('webhookURL', e.target.value)}
             />
@@ -335,7 +316,7 @@ export default function ModelRegistrationForm({
               id="tags"
               type="text"
               placeholder="team=payments, env=prod"
-              className="glass-input w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
+              className="input-field"
               value={form.tags}
               onChange={(e) => updateField('tags', e.target.value)}
             />
@@ -349,7 +330,7 @@ export default function ModelRegistrationForm({
       <button
         type="submit"
         disabled={disabled}
-        className="glass-button-primary w-full py-3 rounded-lg text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="btn-primary"
       >
         {isBackendDown ? (
           <span className="flex items-center justify-center gap-2">
@@ -381,24 +362,15 @@ export default function ModelRegistrationForm({
 function FormField({ label, htmlFor, error, hint, optional, children }) {
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-1.5">
-        <label htmlFor={htmlFor} className="text-sm font-medium text-slate-300">
+      <div className="flex items-center justify-between mb-1">
+        <label htmlFor={htmlFor} className="field-label">
           {label}
           {optional && <span className="text-slate-500 font-normal ml-1">(optional)</span>}
         </label>
       </div>
       {children}
-      {error && (
-        <p className="mt-1 text-xs text-red-400 flex items-center gap-1 transition-all duration-200" role="alert">
-          <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          {error}
-        </p>
-      )}
-      {!error && hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {error && <p className="field-error">{error}</p>}
+      {!error && hint && <p className="field-hint">{hint}</p>}
     </div>
   )
 }

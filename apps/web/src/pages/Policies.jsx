@@ -2,11 +2,6 @@ import React from 'react'
 
 /**
  * Policies — displays gateway routing policies and rate limit configurations.
- * In a production AppGate deployment, these policies are synchronized from
- * the Control Plane's policy engine to the data plane.
- *
- * This page shows the current policy contract enforced by the gateway:
- * rate limits, spend ceilings, upstream allowlist, and audit rules.
  */
 export default function Policies() {
   const policies = [
@@ -53,35 +48,35 @@ export default function Policies() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Page header */}
       <div className="animate-fade-in">
-        <h2 className="text-xl font-semibold text-slate-100">Policies</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <h2 className="text-[17px] font-semibold text-slate-100">Policies</h2>
+        <p className="text-[13px] text-slate-400 mt-1">
           Gateway security policies enforced by the AppGate data plane
         </p>
       </div>
 
       {/* Policy cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3">
         {policies.map((policy, i) => (
           <div
             key={policy.name}
-            className="glass-card animate-slide-up"
-            style={{ animationDelay: `${i * 100}ms` }}
+            className="panel p-4 animate-slide-up"
+            style={{ animationDelay: `${i * 80}ms` }}
           >
             <div className="flex items-start gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+              <div className="p-2 rounded-xl bg-[rgba(34,211,238,0.1)] border border-[rgba(34,211,238,0.2)]">
                 <policy.icon className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-100">{policy.name}</h3>
-                <p className="text-xs text-slate-400 mt-0.5">{policy.description}</p>
+                <h3 className="text-[14px] font-semibold text-slate-100">{policy.name}</h3>
+                <p className="text-[12px] text-slate-400 mt-0.5">{policy.description}</p>
               </div>
             </div>
             <ul className="space-y-1.5">
               {policy.rules.map((rule, j) => (
-                <li key={j} className="flex items-start gap-2 text-xs text-slate-400">
+                <li key={j} className="flex items-start gap-2 text-[12px] text-slate-400">
                   <span className="text-cyan-400/60 mt-0.5">→</span>
                   <span>{rule}</span>
                 </li>
@@ -92,16 +87,16 @@ export default function Policies() {
       </div>
 
       {/* Fail-closed note */}
-      <div className="glass-card">
+      <div className="panel p-4 border-l-4 border-l-cyan-500/40">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+          <div className="p-2 rounded-xl bg-[rgba(248,113,113,0.1)] border border-[rgba(248,113,113,0.2)]">
             <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">Fail-Closed Enforcement</h3>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+            <h3 className="text-[13px] font-semibold text-slate-100">Fail-Closed Enforcement</h3>
+            <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">
               All policy violations result in immediate request denial — no fallback to permissive defaults.
               The data plane evaluates policies before any upstream request is made. If the control plane
               is unreachable, the last-known-good policy set is cached and applied.
