@@ -9,8 +9,6 @@
 # Production: inject secrets via Vault/K8s Secrets (see deploy/terraform).
 # =============================================================================
 
-version: "3.9"
-
 services:
   control-plane:
     build:
@@ -22,7 +20,7 @@ services:
       CP_LOG_FORMAT: "json"
       CP_JWT_SIGNING_METHOD: "RS256"
       CP_JWT_ISSUER: "appgate"
-      CP_JWT_AUDIENCE: "appgate-api"
+      CP_JWT_AUDIENCE: "appgate-gateway"
       CP_JWT_TOKEN_EXPIRY: "24h"
       CP_STORE_PATH: "/data/store.json"
       # DEV ONLY — a real deployment mounts a generated RSA key.
@@ -32,10 +30,11 @@ services:
     ports:
       - "8081:8081"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
-      interval: 10s
+      test: ["CMD", "/app/control-plane", "healthcheck"]
+      interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 10s
     networks:
       - internal
     restart: unless-stopped
@@ -50,7 +49,9 @@ services:
       DP_CP_TLS_INSECURE: "true" # DEV ONLY: control plane runs plain HTTP here
       DP_LOG_LEVEL: "info"
       DP_LOG_FORMAT: "json"
-      DP_ALLOWED_ORIGINS: "http://localhost:8080"
+      DP_ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080"
+      DP_API_RATE_LIMIT: "200"
+      DP_API_RATE_BURST: "400"
     depends_on:
       control-plane:
         condition: service_healthy

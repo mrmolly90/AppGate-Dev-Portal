@@ -46,7 +46,7 @@ func Load() *Config {
 		JWTPrivateKeyPath: getEnv("CP_JWT_PRIVATE_KEY_PATH", ""),
 		JWTPrivateKeyPEM:  getEnv("CP_JWT_PRIVATE_KEY_PEM", ""),
 		JWTIssuer:         getEnv("CP_JWT_ISSUER", "appgate"),
-		JWTAudience:       getEnv("CP_JWT_AUDIENCE", "appgate-api"),
+		JWTAudience:       getEnv("CP_JWT_AUDIENCE", "appgate-gateway"),
 		JWTTokenExpiry:    getDurationEnv("CP_JWT_TOKEN_EXPIRY", 1*time.Hour),
 		JWTSigningMethod:  getEnv("CP_JWT_SIGNING_METHOD", "RS256"),
 		APIRequestLimit:   getIntEnv("CP_API_RATE_LIMIT", 100),

@@ -20,8 +20,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-  },
-  esbuild: {
-    logLevel: 'silent',
+    rollupOptions: {
+      onLog(level, log, handler) {
+        // Silence benign third-party (zod) comment-annotation warnings.
+        // These are informational only — the build output is unaffected.
+        if (level === 'warn' && log.code === 'COMMENT_ANNOTATION') {
+          return
+        }
+        handler(level, log)
+      },
+    },
   },
 })
