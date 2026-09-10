@@ -30,21 +30,29 @@ appgate-dev-portal/
 ├── apps/
 │   ├── api/                    # Go BFF (HTTP handlers, middleware, services)
 │   │   ├── config/             # Env-based config loader
-│   │   ├── handlers/           # /v1/tenant/register, /health
+│   │   ├── handlers/           # /v1/tenant/register, /v1/gateways, /health
 │   │   ├── middleware/         # Rate limiter, security headers, session auth, CORS
-│   │   └── services/           # Orchestration — registration, status query
+│   │   └── services/           # Orchestration — registration, status, gateway listing
 │   └── web/                    # React SPA (Vite + Tailwind)
 │       └── src/
-│           ├── components/     # SecretModal, RegistrationForm, BudgetSlider
-│           ├── hooks/          # useRegistration, useSecretStatus, useBffHealth
-│           └── pages/          # Dashboard (main view)
+│           ├── api/            # Production fetch-based API client (no mock data)
+│           ├── components/     # SecretModal, RegistrationForm, BudgetSlider, Layout
+│           ├── hooks/          # useRegistration, useSecretStatus, useBffHealth, useGateways
+│           └── pages/          # Dashboard, ApiKeys, Policies
 ├── control-plane-ext/          # AppGate Go Control Plane (JWT signing server)
+│   └── internal/
+│       ├── api/                # Gin HTTP server, gateway store
+│       ├── config/             # Env-based config
+│       └── jwt/                # RS256/ES256 JWT signer
 ├── pkg/
 │   ├── controlplane/           # Internal REST client for the control plane
 │   └── security/               # Masking, token parsing, SSRF validation
 ├── deploy/
 │   ├── docker/                 # Multi-stage Dockerfiles, docker-compose
 │   └── terraform/              # AWS ECS Fargate provisioning (private subnets only)
+├── .github/workflows/
+│   ├── ci.yml                  # Lint, test, build Go + Web + Docker
+│   └── cd.yml                  # Push Docker images to ghcr.io
 ├── Makefile
 └── .env.example
 ```
@@ -72,8 +80,9 @@ go run ./cmd/server/main.go &
 
 # 2. Start the BFF
 cd ..
-export DP_CP_BASE_URL=http://localhost:8081 DP_CP_TLS_INSECURE=true
-export DP_ALLOWED_ORIGINS=http://localhost:3000
+$env:DP_CP_BASE_URL="http://localhost:8081"
+$env:DP_CP_TLS_INSECURE="true"
+$env:DP_ALLOWED_ORIGINS="http://localhost:3000"
 go run ./apps/api
 
 # 3. Start the web portal
@@ -105,15 +114,17 @@ curl -s -X POST http://localhost:8080/v1/tenant/register \
 ## Run Tests
 
 ```bash
-# Go unit + integration tests
-go test ./...
+# Go unit + integration tests (24 tests)
+go test -v -count=1 ./...
 
-# End-to-end (requires running services)
-powershell -f bin/e2e-test.ps1
-
-# Fail-closed negative tests
-powershell -f bin/negative-tests.ps1
+# Web build
+cd apps/web && npm run build
 ```
+
+## CI/CD
+
+- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — lints Go, runs tests, builds Go binaries, builds React, verifies Docker images
+- **CD** (`.github/workflows/cd.yml`): On push to `main` — builds and pushes Docker images to GitHub Container Registry (ghcr.io)
 
 ## Deployment
 
