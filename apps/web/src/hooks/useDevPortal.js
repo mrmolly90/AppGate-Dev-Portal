@@ -4,46 +4,74 @@ import { registerTenant, fetchSecretStatus, fetchHealth, fetchGateways } from '.
 /**
  * useRegistration — manages the registration form state and submission.
  * Credentials live only in component state — never persisted.
+ * Provider SDK secret is wiped on any error (fail closed).
  */
 export function useRegistration() {
   const [form, setForm] = useState({
-    model: '',
-    providerKey: '',
+    projectName: '',
+    llmModelName: '',
     providerUrl: '',
-    monthlySpendUSD: 500,
-    rateLimitRPS: 1000,
-    rateLimitBurst: 2000,
+    providerSdkSecret: '',
+    monthlyBudgetLimit: 500,
+    rateLimitRpm: 60000,
     webhookURL: '',
     tags: '',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [credentials, setCredentials] = useState(null)
+
+  // Listen for Zod field-level validation errors
+  useEffect(() => {
+    const handler = (e) => {
+      setFieldErrors(e.detail || {})
+    }
+    window.addEventListener('registration-field-errors', handler)
+    return () => window.removeEventListener('registration-field-errors', handler)
+  }, [])
 
   const updateField = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
+    // Clear field-level error when user corrects the field
+    setFieldErrors((prev) => {
+      if (prev[field]) {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      }
+      return prev
+    })
   }, [])
 
-  const submit = useCallback(async (payload = form) => {
+  const submit = useCallback(async (payload) => {
     setIsSubmitting(true)
     setError(null)
     setCredentials(null)
+    setFieldErrors({})
     try {
       const creds = await registerTenant(payload)
       setCredentials(creds)
       return creds
     } catch (e) {
       setError(e.message || 'Registration failed')
+      // Fail closed: wipe provider secret on any error
+      setForm((prev) => ({ ...prev, providerSdkSecret: '' }))
       return null
     } finally {
       setIsSubmitting(false)
     }
-  }, [form])
+  }, [])
 
   const clearCredentials = useCallback(() => {
+    // Zero trust: actively wipe all credential state
     setCredentials(null)
-    setForm((prev) => ({ ...prev, providerKey: '' }))
+    setFieldErrors({})
+  }, [])
+
+  const clearError = useCallback(() => {
+    setError(null)
   }, [])
 
   return {
@@ -54,6 +82,8 @@ export function useRegistration() {
     isSubmitting,
     error,
     setError,
+    clearError,
+    fieldErrors,
     credentials,
     clearCredentials,
   }

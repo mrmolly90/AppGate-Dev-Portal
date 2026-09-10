@@ -61,6 +61,7 @@ func TestRegisterHandler_Success(t *testing.T) {
 	h := NewRegisterHandler(svc, testLogger())
 
 	body := `{
+		"project_name": "test-app",
 		"model": "gpt-4o",
 		"provider_key": "sk-super-secret-key-1",
 		"provider_url": "https://api.openai.com",
@@ -107,6 +108,7 @@ func TestRegisterHandler_MissingFields(t *testing.T) {
 
 	// Missing provider_key
 	body := `{
+		"project_name": "test-app",
 		"model": "gpt-4o",
 		"provider_url": "https://api.openai.com",
 		"monthly_spend_usd": 500
@@ -130,6 +132,7 @@ func TestRegisterHandler_ShortProviderKey(t *testing.T) {
 	h := NewRegisterHandler(svc, testLogger())
 
 	body := `{
+		"project_name": "test-app",
 		"model": "gpt-4o",
 		"provider_key": "short",
 		"provider_url": "https://api.openai.com",
@@ -154,6 +157,7 @@ func TestRegisterHandler_HTTPProviderURLRejected(t *testing.T) {
 	h := NewRegisterHandler(svc, testLogger())
 
 	body := `{
+		"project_name": "test-app",
 		"model": "gpt-4o",
 		"provider_key": "sk-super-secret-key-1",
 		"provider_url": "http://api.openai.com",
@@ -204,6 +208,7 @@ func TestRegisterHandler_ControlPlaneDown(t *testing.T) {
 	h := NewRegisterHandler(svc, testLogger())
 
 	body := `{
+		"project_name": "test-app",
 		"model": "gpt-4o",
 		"provider_key": "sk-super-secret-key-1",
 		"provider_url": "https://api.openai.com",

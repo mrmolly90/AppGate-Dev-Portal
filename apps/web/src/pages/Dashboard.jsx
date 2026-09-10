@@ -1,18 +1,19 @@
 import React from 'react'
-import RegistrationForm from '../components/RegistrationForm.jsx'
-import SecretModal from '../components/SecretModal.jsx'
+import ModelRegistrationForm from '../components/ModelRegistrationForm.jsx'
+import SecretDisplayModal from '../components/SecretDisplayModal.jsx'
 import Skeleton from '../components/Skeleton.jsx'
 import { useRegistration, useBffHealth, useGateways } from '../hooks/useDevPortal.js'
 
 /**
  * Dashboard — the main registration and credential management view.
+ *
  * Features:
- *  - Gateway registration form with glassmorphism styling.
- *  - Ephemeral SecretModal on successful issuance.
+ *  - Multi-segment gateway registration form with Zod validation.
+ *  - Ephemeral SecretDisplayModal on successful issuance.
  *  - Recent gateways list with live status.
  *  - Health indicator connection status.
  *  - Loading skeletons during data fetch.
- *  - Fail-closed error states.
+ *  - Fail-closed error states (provider secret wiped on error).
  */
 export default function Dashboard() {
   const {
@@ -21,7 +22,8 @@ export default function Dashboard() {
     submit,
     isSubmitting,
     error,
-    setError,
+    clearError,
+    fieldErrors,
     credentials,
     clearCredentials,
   } = useRegistration()
@@ -31,7 +33,7 @@ export default function Dashboard() {
 
   const handleSubmit = async (payload) => {
     const result = await submit(payload)
-    if (result) setError(null)
+    if (result) clearError()
   }
 
   const isBackendDown = health.status === 'unreachable'
@@ -66,12 +68,14 @@ export default function Dashboard() {
             Submit provider credentials and spend limits to receive a signed execution JWT
           </p>
         </div>
-        <RegistrationForm
+        <ModelRegistrationForm
           form={form}
           updateField={updateField}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting || isBackendDown}
           error={error}
+          fieldErrors={fieldErrors}
+          onClearError={clearError}
         />
       </div>
 
@@ -109,7 +113,7 @@ export default function Dashboard() {
                     gw.status === 'active' ? 'bg-emerald-400' : 'bg-slate-500'
                   }`} />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-200 truncate">{gw.id}</p>
+                    <p className="text-sm font-medium text-slate-200 truncate">{gw.project_name || gw.id}</p>
                     <p className="text-xs text-slate-500">{gw.model}</p>
                   </div>
                 </div>
@@ -125,7 +129,7 @@ export default function Dashboard() {
 
       {/* Ephemeral credential modal */}
       {credentials && (
-        <SecretModal credentials={credentials} onClose={clearCredentials} />
+        <SecretDisplayModal credentials={credentials} onClose={clearCredentials} />
       )}
     </div>
   )

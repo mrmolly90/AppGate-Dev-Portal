@@ -146,11 +146,14 @@ func (s *Server) healthHandler(c *gin.Context) {
 
 // GatewayRegistrationRequest is the payload from the dev-portal BFF.
 type GatewayRegistrationRequest struct {
+	ProjectName     string            `json:"project_name"`
 	Model           string            `json:"model" binding:"required"`
+	LLMModelName    string            `json:"llm_model_name"`
 	ProviderKey     string            `json:"provider_key" binding:"required"`
 	ProviderURL     string            `json:"provider_url" binding:"required"`
 	MonthlySpendUSD float64           `json:"monthly_spend_usd" binding:"required,min=0"`
 	RateLimitRPS    int               `json:"rate_limit_rps"`
+	RateLimitRPM    int               `json:"rate_limit_rpm"`
 	RateLimitBurst  int               `json:"rate_limit_burst"`
 	WebhookURL      string            `json:"webhook_url"`
 	Tags            map[string]string `json:"tags"`
@@ -170,10 +173,13 @@ type GatewayRegistrationResponse struct {
 type GatewayRecord struct {
 	ClientID        string            `json:"client_id"`
 	ClientSecretID  string            `json:"client_secret_id"`
+	ProjectName     string            `json:"project_name"`
 	Model           string            `json:"model"`
+	LLMModelName    string            `json:"llm_model_name"`
 	ProviderURL     string            `json:"provider_url"`
 	MonthlySpendUSD float64           `json:"monthly_spend_usd"`
 	RateLimitRPS    int               `json:"rate_limit_rps"`
+	RateLimitRPM    int               `json:"rate_limit_rpm"`
 	RateLimitBurst  int               `json:"rate_limit_burst"`
 	WebhookURL      string            `json:"webhook_url"`
 	Tags            map[string]string `json:"tags"`
@@ -244,10 +250,13 @@ func (s *Server) registerGatewayHandler(c *gin.Context) {
 	record := GatewayRecord{
 		ClientID:        clientID,
 		ClientSecretID:  clientSecretID,
+		ProjectName:     req.ProjectName,
 		Model:           req.Model,
+		LLMModelName:    req.LLMModelName,
 		ProviderURL:     req.ProviderURL,
 		MonthlySpendUSD: req.MonthlySpendUSD,
 		RateLimitRPS:    req.RateLimitRPS,
+		RateLimitRPM:    req.RateLimitRPM,
 		RateLimitBurst:  req.RateLimitBurst,
 		WebhookURL:      req.WebhookURL,
 		Tags:            req.Tags,
@@ -298,10 +307,13 @@ func (s *Server) listGatewaysHandler(c *gin.Context) {
 	// Strip sensitive fields before returning
 	type safeGateway struct {
 		ClientID        string            `json:"id"`
+		ProjectName     string            `json:"project_name"`
 		Model           string            `json:"model"`
+		LLMModelName    string            `json:"llm_model_name"`
 		ProviderURL     string            `json:"provider_url"`
 		MonthlySpendUSD float64           `json:"monthly_spend_usd"`
 		RateLimitRPS    int               `json:"rate_limit_rps"`
+		RateLimitRPM    int               `json:"rate_limit_rpm"`
 		RateLimitBurst  int               `json:"rate_limit_burst"`
 		Status          string            `json:"status"`
 		CreatedAt       string            `json:"created_at"`
@@ -313,10 +325,13 @@ func (s *Server) listGatewaysHandler(c *gin.Context) {
 	for _, r := range records {
 		safeGateways = append(safeGateways, safeGateway{
 			ClientID:        r.ClientID,
+			ProjectName:     r.ProjectName,
 			Model:           r.Model,
+			LLMModelName:    r.LLMModelName,
 			ProviderURL:     r.ProviderURL,
 			MonthlySpendUSD: r.MonthlySpendUSD,
 			RateLimitRPS:    r.RateLimitRPS,
+			RateLimitRPM:    r.RateLimitRPM,
 			RateLimitBurst:  r.RateLimitBurst,
 			Status:          r.Status,
 			CreatedAt:       r.CreatedAt,

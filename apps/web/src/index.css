@@ -143,3 +143,16 @@ input[type='range']::-moz-range-thumb {
 .route-enter {
   animation: fadeIn 0.25s ease-out, slideUp 0.25s ease-out;
 }
+
+/* =========================================================================
+   Glow pulse shadow utility (used by SecretModal)
+   ========================================================================= */
+.shadow-glow-pulse {
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(34, 211, 238, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
+}

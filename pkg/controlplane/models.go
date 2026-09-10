@@ -20,9 +20,15 @@ import "time"
 // validates independently (fail closed). Fields are intentionally aligned
 // with the control plane's GatewayRegistrationRequest schema.
 type RegisterRequest struct {
+	// ProjectName is the internal name for the client's application.
+	ProjectName string `json:"project_name"`
+
 	// Model is the upstream LLM model identifier, e.g. "gpt-4o".
 	// Validated as a non-empty, length-bounded identifier.
 	Model string `json:"model"`
+
+	// LLMModelName is the selectable model name from the dropdown.
+	LLMModelName string `json:"llm_model_name"`
 
 	// ProviderKey is the upstream SDK/api credential for the LLM provider.
 	// Treated as a secret end-to-end: masked in logs, never persisted
@@ -40,6 +46,9 @@ type RegisterRequest struct {
 
 	// RateLimitRPS is the per-identity request ceiling in requests/second.
 	RateLimitRPS int `json:"rate_limit_rps"`
+
+	// RateLimitRPM is the per-identity request ceiling in requests/minute.
+	RateLimitRPM int `json:"rate_limit_rpm"`
 
 	// RateLimitBurst is the burst allowance applied by the data plane.
 	RateLimitBurst int `json:"rate_limit_burst"`
@@ -87,9 +96,11 @@ type SecretStatus struct {
 // Meta represents control-plane-reported gateway metadata (non-sensitive).
 type Meta struct {
 	ID              string            `json:"id"`
+	ProjectName     string            `json:"project_name"`
 	Model           string            `json:"model"`
 	MonthlySpendUSD float64           `json:"monthly_spend_usd"`
 	RateLimitRPS    int               `json:"rate_limit_rps"`
+	RateLimitRPM    int               `json:"rate_limit_rpm"`
 	Status          string            `json:"status"`
 	CreatedAt       string            `json:"created_at"`
 	Tags            map[string]string `json:"tags"`

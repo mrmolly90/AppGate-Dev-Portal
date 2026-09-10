@@ -21,37 +21,37 @@ func TestValidateRegisterRequest(t *testing.T) {
 		},
 		{
 			name:    "missing model",
-			req:     &RegisterRequest{ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
+			req:     &RegisterRequest{ProjectName: "my-app", ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
 			wantErr: true,
 		},
 		{
 			name:    "missing provider key",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
 			wantErr: true,
 		},
 		{
 			name:    "short provider key",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderKey: "short", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderKey: "short", ProviderURL: "https://api.example.com", MonthlySpendUSD: 100},
 			wantErr: true,
 		},
 		{
 			name:    "missing provider URL",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderKey: "sk-abcdefgh", MonthlySpendUSD: 100},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderKey: "sk-abcdefgh", MonthlySpendUSD: 100},
 			wantErr: true,
 		},
 		{
 			name:    "HTTP provider URL (should fail SSRF check)",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "http://api.example.com", MonthlySpendUSD: 100},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "http://api.example.com", MonthlySpendUSD: 100},
 			wantErr: true,
 		},
 		{
 			name:    "zero spend",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 0},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 0},
 			wantErr: true,
 		},
 		{
 			name:    "valid request",
-			req:     &RegisterRequest{Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 500},
+			req:     &RegisterRequest{ProjectName: "my-app", Model: "gpt-4o", ProviderKey: "sk-abcdefgh", ProviderURL: "https://api.example.com", MonthlySpendUSD: 500},
 			wantErr: false,
 		},
 	}
@@ -134,6 +134,7 @@ func TestClientNetworkError(t *testing.T) {
 		t.Fatalf("New() failed: %v", err)
 	}
 	_, err = c.Register(context.Background(), &RegisterRequest{
+		ProjectName:     "test",
 		Model:           "test",
 		ProviderKey:     "sk-abcdefgh",
 		ProviderURL:     "https://api.example.com",
@@ -221,6 +222,7 @@ func TestClient_IntegrationViaTestServer(t *testing.T) {
 	}
 
 	resp, err := c.Register(context.Background(), &RegisterRequest{
+		ProjectName:     "test-app",
 		Model:           "gpt-4o",
 		ProviderKey:     "sk-abcdefgh",
 		ProviderURL:     "https://api.openai.com",

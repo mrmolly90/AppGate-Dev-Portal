@@ -40,11 +40,14 @@ func NewRegisterHandler(svc *services.RegistrationService, logger *zerolog.Logge
 
 // TenantRegisterRequest is the JSON payload accepted from the frontend.
 type TenantRegisterRequest struct {
+	ProjectName     string            `json:"project_name"`
 	Model           string            `json:"model"`
+	LLMModelName    string            `json:"llm_model_name"`
 	ProviderKey     string            `json:"provider_key"`
 	ProviderURL     string            `json:"provider_url"`
 	MonthlySpendUSD float64           `json:"monthly_spend_usd"`
 	RateLimitRPS    int               `json:"rate_limit_rps"`
+	RateLimitRPM    int               `json:"rate_limit_rpm"`
 	RateLimitBurst  int               `json:"rate_limit_burst"`
 	WebhookURL      string            `json:"webhook_url"`
 	Tags            map[string]string `json:"tags"`
@@ -92,6 +95,7 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Log only metadata — NEVER log the provider key
 	h.logger.Info().
+		Str("project", req.ProjectName).
 		Str("model", req.Model).
 		Str("provider_url", req.ProviderURL).
 		Float64("monthly_spend_usd", req.MonthlySpendUSD).
@@ -101,11 +105,14 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Build the control plane request
 	cpReq := &controlplane.RegisterRequest{
+		ProjectName:     req.ProjectName,
 		Model:           req.Model,
+		LLMModelName:    req.LLMModelName,
 		ProviderKey:     req.ProviderKey,
 		ProviderURL:     req.ProviderURL,
 		MonthlySpendUSD: req.MonthlySpendUSD,
 		RateLimitRPS:    req.RateLimitRPS,
+		RateLimitRPM:    req.RateLimitRPM,
 		RateLimitBurst:  req.RateLimitBurst,
 		WebhookURL:      req.WebhookURL,
 		Tags:            req.Tags,
@@ -149,6 +156,12 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // plane. Duplicated validation is intentional defense-in-depth: the BFF
 // never sends a payload the control plane would reject.
 func (h *RegisterHandler) validateRequest(req *TenantRegisterRequest) error {
+	if strings.TrimSpace(req.ProjectName) == "" {
+		return errors.New("project_name is required")
+	}
+	if len(req.ProjectName) > 128 {
+		return errors.New("project_name exceeds maximum length of 128 characters")
+	}
 	if strings.TrimSpace(req.Model) == "" {
 		return errors.New("model is required")
 	}
@@ -173,6 +186,9 @@ func (h *RegisterHandler) validateRequest(req *TenantRegisterRequest) error {
 	}
 	if req.RateLimitRPS <= 0 {
 		req.RateLimitRPS = 1000 // default matching control plane
+	}
+	if req.RateLimitRPM <= 0 {
+		req.RateLimitRPM = 60000 // default 60k req/min
 	}
 	if req.RateLimitBurst <= 0 {
 		req.RateLimitBurst = 2000

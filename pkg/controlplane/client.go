@@ -166,6 +166,7 @@ func (c *Client) Register(ctx context.Context, req *RegisterRequest) (*RegisterR
 	}
 
 	c.logf("info", "control plane gateway registration",
+		"project", req.ProjectName,
 		"model", req.Model,
 		"spend_usd", req.MonthlySpendUSD,
 		"rps", req.RateLimitRPS)
@@ -367,6 +368,12 @@ func (c *Client) ensureToken(ctx context.Context) (string, error) {
 func validateRegisterRequest(req *RegisterRequest) error {
 	if req == nil {
 		return errors.New("controlplane: nil registration request")
+	}
+	if strings.TrimSpace(req.ProjectName) == "" {
+		return errors.New("controlplane: project_name is required")
+	}
+	if len(req.ProjectName) > 128 {
+		return errors.New("controlplane: project_name exceeds 128 characters")
 	}
 	if strings.TrimSpace(req.Model) == "" {
 		return errors.New("controlplane: model is required")
