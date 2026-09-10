@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -60,6 +61,8 @@ func NewInMemoryStore() *GatewayStore {
 }
 
 // Save persists a gateway record (creates or updates).
+// Falls back to in-memory store on file write errors
+// (e.g., permission denied in container volumes).
 func (s *GatewayStore) Save(record GatewayRecord) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -67,7 +70,10 @@ func (s *GatewayStore) Save(record GatewayRecord) error {
 	s.records[record.ClientID] = &record
 
 	if s.path != "" {
-		return s.flush()
+		if err := s.flush(); err != nil {
+			// Non-fatal: keep in-memory, log the error
+			return fmt.Errorf("store persist to disk failed (in-memory fallback active): %w", err)
+		}
 	}
 	return nil
 }
